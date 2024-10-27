@@ -9,29 +9,28 @@ import * as security from '../lib/insecurity'
 
 async function retrieveUserList (req: Request, res: Response, next: NextFunction) {
   try {
-    const users = await UserModel.findAll()
+    const users = await UserModel.findAll({
+      attributes: { exclude: ['password', 'totpSecret'] } // Prevent loading sensitive fields
+    });
 
     res.json({
       status: 'success',
       data: users.map((user) => {
-        const userToken = security.authenticatedUsers.tokenOf(user)
-        let lastLoginTime: number | null = null
+        const userToken = security.authenticatedUsers.tokenOf(user);
+        let lastLoginTime: number | null = null;
         if (userToken) {
-          const parsedToken = decode(userToken, { json: true })
-          lastLoginTime = parsedToken ? Math.floor(new Date(parsedToken?.iat ?? 0 * 1000).getTime()) : null
+          const parsedToken = decode(userToken, { json: true });
+          lastLoginTime = parsedToken ? Math.floor(new Date((parsedToken?.iat ?? 0) * 1000).getTime()) : null;
         }
-
         return {
           ...user.dataValues,
-          password: user.password?.replace(/./g, '*'),
-          totpSecret: user.totpSecret?.replace(/./g, '*'),
           lastLoginTime
-        }
+        };
       })
-    })
+    });
   } catch (error) {
-    next(error)
+    next(error);
   }
 }
 
-export default () => retrieveUserList
+export default () => retrieveUserList;
