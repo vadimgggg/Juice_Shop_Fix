@@ -1,8 +1,3 @@
-<!--
-  ~ Copyright (c) 2014-2024 Bjoern Kimminich & the OWASP Juice Shop contributors.
-  ~ SPDX-License-Identifier: MIT
-  -->
-
 <div fxLayoutAlign="center">
   <mat-card class="mat-elevation-z6">
 
@@ -18,7 +13,17 @@
                [formControl]="emailControl"
                (focus)="this.error=null"
                matInput placeholder=""
-               aria-label="Text field for the login email">
+               aria-label="Text field for the login email"
+               [type]="showEmail ? 'text' : 'email'">
+        <button *ngIf="!showEmail" mat-icon-button matSuffix (click)="showEmail = !showEmail"
+                aria-label="Button to display the email" matTooltip="{{ 'SHOW_EMAIL_TOOLTIP' | translate  }}"
+                matTooltipPosition="right">
+          <i class="fas fa-eye" aria-label="Eye"></i>
+        </button>
+        <button *ngIf="showEmail" mat-icon-button matSuffix (click)="showEmail = !showEmail" aria-label="Button to hide the email" matTooltip="{{ 'HIDE_EMAIL_TOOLTIP' | translate  }}"
+                matTooltipPosition="right">
+          <i class="fas fa-eye-slash" aria-label="Eye Slash"></i>
+        </button>
         <mat-error *ngIf="emailControl.invalid" translate>MANDATORY_EMAIL</mat-error>
       </mat-form-field>
 
@@ -31,11 +36,11 @@
                aria-label="Text field for the login password">
         <button *ngIf="hide" mat-icon-button matSuffix (click)="hide = !hide"
                 aria-label="Button to display the password" matTooltip="{{ 'SHOW_PWD_TOOLTIP' | translate  }}"
-                matTooltipPosition=right>
+                matTooltipPosition="right">
           <i class="fas fa-eye" aria-label="Eye"></i>
         </button>
         <button *ngIf="!hide" mat-icon-button matSuffix (click)="hide = !hide" aria-label="Button to hide the password" matTooltip="{{ 'HIDE_PWD_TOOLTIP' | translate  }}"
-                matTooltipPosition=right>
+                matTooltipPosition="right">
           <i class="fas fa-eye-slash" aria-label="Eye Slash"></i>
         </button>
         <mat-error *ngIf="passwordControl.invalid" translate>MANDATORY_PASSWORD</mat-error>
@@ -43,7 +48,7 @@
 
       <a class="primary-link forgot-pw" routerLink="/forgot-password" translate>FORGOT_PASSWORD</a>
 
-      <button type="submit" id="loginButton" [disabled]="!emailControl.value||!passwordControl.value" mat-raised-button
+      <button type="submit" id="loginButton" [disabled]="!emailControl.value || !passwordControl.value" mat-raised-button
               color="primary" (click)="login()" aria-label="Login">
         <mat-icon>
           exit_to_app
