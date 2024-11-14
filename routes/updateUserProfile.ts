@@ -3,42 +3,59 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { type Request, type Response, type NextFunction } from 'express'
-import { UserModel } from '../models/user'
-import challengeUtils = require('../lib/challengeUtils')
-import * as utils from '../lib/utils'
+import { type Request, type Response, type NextFunction } from 'express';
+import { UserModel } from '../models/user';
+import challengeUtils = require('../lib/challengeUtils');
+import * as utils from '../lib/utils';
 
-const security = require('../lib/insecurity')
-const cache = require('../data/datacache')
-const challenges = cache.challenges
+const security = require('../lib/insecurity');
+const cache = require('../data/datacache');
+const challenges = cache.challenges;
 
-module.exports = function updateUserProfile () {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const loggedInUser = security.authenticatedUsers.get(req.cookies.token)
+module.exports = function updateUserProfile() {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const loggedInUser = security.authenticatedUsers.get(req.cookies.token);
 
-    if (loggedInUser) {
-      UserModel.findByPk(loggedInUser.data.id).then((user: UserModel | null) => {
+      if (loggedInUser) {
+        const user = await UserModel.findByPk(loggedInUser.data.id);
         if (user != null) {
           challengeUtils.solveIf(challenges.csrfChallenge, () => {
-            return ((req.headers.origin?.includes('://htmledit.squarefree.com')) ??
-              (req.headers.referer?.includes('://htmledit.squarefree.com'))) &&
-              req.body.username !== user.username
-          })
-          void user.update({ username: req.body.username }).then((savedUser: UserModel) => {
-            // @ts-expect-error FIXME some properties missing in savedUser
-            savedUser = utils.queryResultToJson(savedUser)
-            const updatedToken = security.authorize(savedUser)
-            security.authenticatedUsers.put(updatedToken, savedUser)
-            res.cookie('token', updatedToken)
-            res.location(process.env.BASE_PATH + '/profile')
-            res.redirect(process.env.BASE_PATH + '/profile')
-          })
+            return (
+              (req.headers.origin?.includes('://htmledit.squarefree.com') ?? false) ||
+              (req.headers.referer?.includes('://htmledit.squarefree.com') ?? false)
+            ) && req.body.username !== user.username;
+          });
+
+          // Validate and sanitize the new username
+          const newUsername = utils.sanitizeHtml(req.body.username);
+          if (!newUsername || newUsername.trim().length === 0) {
+            throw new Error('Invalid username');
+          }
+
+          await user.update({ username: newUsername });
+          // @ts-expect-error FIXME some properties missing in savedUser
+          const savedUser = utils.queryResultToJson(user);
+          const updatedToken = await security.authorize(savedUser);
+
+          security.authenticatedUsers.put(updatedToken, savedUser);
+
+          res.cookie('token', updatedToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'Strict'
+          });
+
+          res.location(`${process.env.BASE_PATH}/profile`);
+          res.redirect(`${process.env.BASE_PATH}/profile`);
+        } else {
+          throw new Error('User not found');
         }
-      }).catch((error: Error) => {
-        next(error)
-      })
-    } else {
-      next(new Error('Blocked illegal activity by ' + req.socket.remoteAddress))
+      } else {
+        throw new Error(`Blocked illegal activity by ${req.socket.remoteAddress}`);
+      }
+    } catch (error) {
+      next(error);
     }
-  }
-}
+  };
+};
