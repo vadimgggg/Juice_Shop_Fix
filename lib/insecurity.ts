@@ -208,7 +208,11 @@ export const updateAuthenticatedUsers = () => (req: Request, res: Response, next
       if (err === null) {
         if (authenticatedUsers.get(token) === undefined) {
           authenticatedUsers.put(token, decoded)
-          res.cookie('token', token)
+          res.cookie('token', token, {
+            secure: true, // Ensures the cookie is only sent over HTTPS
+            httpOnly: true, // Ensures the cookie is not accessible via JavaScript
+            sameSite: 'Strict' // Adjust based on your requirements; 'Strict' or 'Lax'
+          })
         }
       }
     })
