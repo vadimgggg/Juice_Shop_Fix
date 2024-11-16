@@ -17,7 +17,7 @@ describe('/', () => {
     it('should accept a token HMAC-signed with public RSA key with email rsa_lord@juice-sh.op in the payload ', () => {
       cy.task('isWindows').then((isWindows) => {
         cy.window().then(() => {
-          const token = process.env.JWT_TOKEN;
+          const token = process.env.JWT_TOKEN2;
           if (token) {
             localStorage.setItem('token', token); // Зберігаємо в localStorage
           }
