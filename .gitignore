@@ -67,3 +67,4 @@ config/*.yml
 
 # Add .env to ignore
 .env
+process.env
