@@ -2,7 +2,8 @@
  * Copyright (c) 2014-2024 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
-
+import dotenv from 'dotenv';
+dotenv.config();
 import sinon = require('sinon')
 import config from 'config'
 import type { Product as ProductConfig } from '../../lib/config.types'
@@ -294,8 +295,9 @@ describe('verify', () => {
         Header: { "alg": "HS256", "typ": "JWT" }
         Payload: { "data": { "email": "rsa_lord@juice-sh.op" }, "iat": 1508639612, "exp": 9999999999 }
          */
-        req.headers = { authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImVtYWlsIjoicnNhX2xvcmRAanVpY2Utc2gub3AifSwiaWF0IjoxNTgyMjIxNTc1fQ.ycFwtqh4ht4Pq9K5rhiPPY256F9YCTIecd4FHFuSEAg' }
-
+        const forgedToken = process.env.JWT_FORGED_TOKEN; 
+  
+        req.headers = { authorization: `Bearer ${forgedToken}` };
         verify.jwtChallenges()(req, res, next)
 
         expect(challenges.jwtForgedChallenge.solved).to.equal(true)
@@ -306,8 +308,8 @@ describe('verify', () => {
         Header: { "alg": "HS256", "typ": "JWT" }
         Payload: { "data": { "email": "rsa_lord@" }, "iat": 1508639612, "exp": 9999999999 }
          */
-        req.headers = { authorization: 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkYXRhIjp7ImVtYWlsIjoicnNhX2xvcmRAIn0sImlhdCI6MTU4MjIyMTY3NX0.50f6VAIQk2Uzpf3sgH-1JVrrTuwudonm2DKn2ec7Tg8' }
-
+        const forgedToken = process.env.TOKEN3; 
+        req.headers = { authorization: `Bearer ${forgedToken}` };
         verify.jwtChallenges()(req, res, next)
 
         expect(challenges.jwtForgedChallenge.solved).to.equal(true)
