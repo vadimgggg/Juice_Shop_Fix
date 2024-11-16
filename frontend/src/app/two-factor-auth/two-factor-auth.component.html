@@ -16,6 +16,7 @@
         id="two-factor-auth-disable"
         [formGroup]="twoFactorDisableForm"
         (ngSubmit)="disable()"
+        method="post" <!-- Додав метод POST -->
       >
 
         <h2 id="two-factor-auth-disable-title" translate>REMOVE_TWO_FACTOR_AUTH</h2>
@@ -52,6 +53,7 @@
       id="two-factor-auth-setup"
       [formGroup]="twoFactorSetupForm"
       (ngSubmit)="setup()"
+      method="post" <!-- Додав метод POST -->
     >
 
       <span id="2fa-setup-instructions" translate>2FA_AUTH_SETUP_INSTRUCTIONS</span>
